@@ -82,7 +82,7 @@ class OutlookSyncAdapter(context: Context, autoInitialize: Boolean) extends Abst
     
      
     
-    def getCalendars(calendars: List[Calendar], movedToNextSuccessful: Boolean) = movedToNextSuccessful match {
+    def getCalendars(calendars: IO[Validation[Exception, List[Calendar]]], movedToNextSuccessful: Boolean) = movedToNextSuccessful match {
       case true => getCalendars()
       case false => calendars
     }
