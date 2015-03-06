@@ -28,6 +28,11 @@ sealed abstract class Validation[E, A] {
     case Failure(e) => Failure(e)
   }
   
+  def mapFailure[B](f: E => B): Validation[B, A] = this match {
+    case Success(a) => Success(a)
+    case Failure(e) => Failure(f(e))
+  }
+  
   def getOrElse(f: E => A): A = this match {
     case Success(a) => a
     case Failure(e) => f(e)

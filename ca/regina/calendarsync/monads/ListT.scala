@@ -2,6 +2,7 @@ package ca.regina.calendarsync.monads
 
 case class ListT[M[_], A](run: M[List[A]])(implicit M: Monad[M]) {
 	def ::(a: A): ListT[M, A] = ListT(M.map(run)(a :: _))
+	def ::(ma: M[A]): ListT[M, A] = ListT(M.flatMap(run)(list => M.map(ma)(_ :: list)))
 	def isEmpty = M.map(run)(_.isEmpty)
 	def headOption = M.map(run)(_.headOption)
 	
@@ -25,4 +26,6 @@ object ListT {
     def map[A, B](listT: ListT[F, A])(f: A => B) = listT.map(f)
     def flatMap[A, B](listT: ListT[F, A])(f: A => ListT[F, B]) = listT.flatMap(f)
   }
+  
+  def emptyListTMonad[M[_], A](implicit M: Monad[M]) =  ListT[M, A](M.pure(Nil))
 }

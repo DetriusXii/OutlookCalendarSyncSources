@@ -8,9 +8,12 @@ case class ValidationT[F[_], E, A](run: F[Validation[E, A]])(implicit F: Monad[F
       case Success(a) => f(a).run
       case Failure(e) => F.pure(Failure(e))
     }))
+    
+  def getOrElse(f: E => F[A]): F[A] = F.flatMap(run)(_.map(F.pure(_)).getOrElse(f))
+  
 }
 
-object ValidationT {
+object ValidationT {  
   implicit def validationTMonad[E, F[_]](implicit F: Monad[F]) = new Monad[({type M[A] =  ValidationT[F, E, A]})#M] {
     def pure[A](a: A) = ValidationT(F.pure(Success(a)))
     def map[A, B](validationT: ValidationT[F, E, A])(f: A => B) = validationT.map(f)

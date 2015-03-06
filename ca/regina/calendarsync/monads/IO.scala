@@ -21,4 +21,6 @@ object IO {
     		c <- f(cursor);
     		_ <- new IO[Unit](cursor.close())
     ) yield c
+    
+  def writeToLogVerbose(tag: String)(message: String): IO[Int] =  IO(android.util.Log.v(tag, message))
 }

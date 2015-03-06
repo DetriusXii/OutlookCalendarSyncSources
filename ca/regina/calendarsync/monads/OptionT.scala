@@ -16,4 +16,8 @@ object OptionT {
     def map[A, B](optionT: OptionT[M, A])(f: A => B) = optionT.map(f)
     def flatMap[A, B](optionT: OptionT[M, A])(f: A => OptionT[M, B]) = optionT.flatMap(f)
   }
+  
+  implicit def richOptionTMonad[M[_], A](optionT: M[Option[A]])(implicit M: Monad[M]) = new {
+    def toOptionT: OptionT[M, A] = OptionT(optionT)
+  }
 }
