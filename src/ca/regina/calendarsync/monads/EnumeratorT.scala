@@ -21,6 +21,10 @@ object EnumeratorT {
           	})
       	}
         
+  def enumEofT[E, M[_]](implicit M: Monad[M]): EnumeratorT[E, M] = new EnumeratorT[E, M] {
+    def apply[A] = _.mapCont(_(Input.eofInput))
+  }
+  
   def enumCursor[A](
       columnNames: Array[String], arrayMapping: Array[String] => A)
       (cursor: android.database.Cursor)

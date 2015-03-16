@@ -21,8 +21,10 @@ class IterateeT[E, F[_], A](val value: F[StepT[E, F, A]])(implicit F: Monad[F]) 
     through(this)
   }
   
-  def >>==[EE, AA](f: StepT[E, F, A] => IterateeT[EE, F, AA])(implicit F: Monad[F]): IterateeT[EE, F, AA] =
+  def >>==[EE, AA](f: StepT[E, F, A] => IterateeT[EE, F, AA]): IterateeT[EE, F, AA] =
     IterateeT.iterateeT(F.flatMap(value)(s => f(s).value))
+  
+  def &=(e: EnumeratorT[E, F]): IterateeT[E, F, A] = this >>== e[A]
 }
 
 object IterateeT {
