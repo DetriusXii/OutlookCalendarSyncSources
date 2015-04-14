@@ -25,6 +25,9 @@ class IterateeT[E, F[_], A](val value: F[StepT[E, F, A]])(implicit F: Monad[F]) 
     IterateeT.iterateeT(F.flatMap(value)(s => f(s).value))
   
   def &=(e: EnumeratorT[E, F]): IterateeT[E, F, A] = this >>== e[A]
+  
+  def run: F[A] = F.flatMap((this &= EnumeratorT.enumEofT[E, F]).value)((s: StepT[E, F, A]) => 
+    s.fold(cont = _ => sys.error("diverging iteratees"), done = (a, _) => F.pure(a)))
 }
 
 object IterateeT {

@@ -22,5 +22,11 @@ object IO {
     		_ <- IO[Unit](cursor.close())
     ) yield c
     
+  def using[A <: android.database.Cursor, C](openHandle: IO[Option[A]])(f: A => IO[C]): IO[Option[C]] = 
+    for (cursorOption <- openHandle;
+    		c <- cursorOption.map(f).map(_.map(Some(_))).getOrElse({IO(None)});
+    		_ <- IO[Unit](cursorOption.map(_.close()))
+    ) yield c
+    
   def writeToLogVerbose(tag: String)(message: String): IO[Int] =  IO(android.util.Log.v(tag, message))
 }

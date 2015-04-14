@@ -8,6 +8,8 @@ trait EnumeratorT[E, F[_]] {
 }
 
 object EnumeratorT {
+  type Enumerator[E] = EnumeratorT[E, Identity.Id]
+  
   def enumIoSource[T, E, F[_]](get: () => IoExceptionOr[T], 
       gotdata: IoExceptionOr[T] => Boolean, 
       render: T => E)(implicit F: Monad[F]): EnumeratorT[IoExceptionOr[E], F] = 
@@ -39,26 +41,24 @@ object EnumeratorT {
       else None
     }))
     
-    
-    
     new EnumeratorT[A, IO] {
       def apply[B] = {
-        cursor.moveToFirst()
         def go(s: StepT[A, IO, B]): IterateeT[A, IO, B] = {
           if (cursor.isBeforeFirst() || cursor.isAfterLast()) s.pointI
           else {
             val columnValuesOption = readColumnValues.map(_.sequence).flatten
             val elementOption = columnValuesOption.map(columnValues => arrayMapping(columnValues.toArray))
-            elementOption match {
-              case Some(element) => s.mapCont(k => {
-                cursor.moveToNext()
-                k(Input.elInput(element)) >>== go
-              })
-              case None => s.pointI 
-            }
+            elementOption.map(element => s.mapCont(k => 
+              IterateeT(IO(cursor.moveToNext()).flatMap(_ => k(Input.elInput(element)).value))  >>== go)).
+              getOrElse({s.pointI})
+            
           }
         }
-        go
+        
+        (s: StepT[A, IO, B]) => IterateeT(IO(cursor.moveToFirst()).flatMap(result => result match {
+          case true => go(s).value
+          case false => s.pointI.value
+        }))
       }
     }
   }

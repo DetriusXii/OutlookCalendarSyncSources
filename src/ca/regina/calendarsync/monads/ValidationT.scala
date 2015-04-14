@@ -13,7 +13,7 @@ case class ValidationT[F[_], E, A](run: F[Validation[E, A]])(implicit F: Monad[F
   
 }
 
-object ValidationT {  
+object ValidationT {
   implicit def validationTMonad[E, F[_]](implicit F: Monad[F]) = new Monad[({type M[A] =  ValidationT[F, E, A]})#M] {
     def pure[A](a: A) = ValidationT(F.pure(Success(a)))
     def map[A, B](validationT: ValidationT[F, E, A])(f: A => B) = validationT.map(f)
